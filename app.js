@@ -69,10 +69,12 @@ function renderPage(pdfPage, canvasEl) {
 		$('.page').css('height', pageHeight + 'px');
 		$('.page').css('width', pageWidth + 'px');
 
-		if ([0, 180].includes(pdfSettings.rotation)) {
-			$('.page').css('width', pageWidth / 2 + 'px');
-		} else {
-			$('.page').css('height', pageHeight / 2 + 'px');
+		if (pdfSettings.imposed) {
+			if ([0, 180].includes(pdfSettings.rotation)) {
+				$('.page').css('width', pageWidth / 2 + 'px');
+			} else {
+				$('.page').css('height', pageHeight / 2 + 'px');
+			}
 		}
 	});
 }
@@ -126,20 +128,24 @@ function init() {
 				return;
 			}
 
-			// After certain rotations, pages end up on opposite side
-			if ([90, 180].includes(pdfSettings.rotation)) {
-				rightCanvas = $('#canvas-left');
-				leftCanvas = $('#canvas-right');
-			}
-
 			$('#pdf-uploader').css('display', 'none');
 			$('#pdf-viewer').css('display', 'block');
 
-			$('#pdf-viewer').css('transform', 'rotate(' + pdfSettings.rotation + 'deg)');
-			if ([0, 180].includes(pdfSettings.rotation)) {
-				$('.page').addClass('not-rotated');
+			if (pdfSettings.imposed) {
+				// After certain rotations, pages end up on opposite side
+				if ([90, 180].includes(pdfSettings.rotation)) {
+					rightCanvas = $('#canvas-left');
+					leftCanvas = $('#canvas-right');
+				}
+
+				$('#pdf-viewer').css('transform', 'rotate(' + pdfSettings.rotation + 'deg)');
+				if ([0, 180].includes(pdfSettings.rotation)) {
+					$('.page').addClass('not-rotated');
+				} else {
+					$('.page').addClass('rotated');
+				}
 			} else {
-				$('.page').addClass('rotated');
+				$('.page').addClass('not-rotated');
 			}
 
 			leftCanvas.click(function (event) {
