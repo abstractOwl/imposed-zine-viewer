@@ -1,3 +1,6 @@
+* {
+	font-family: Georgia, serif;
+}
 html, body {
 	min-height: 100%;
 	min-width: 100%;
@@ -21,10 +24,8 @@ body {
 	display: none;
 }
 
-#pdf-uploader {
-	color: #AAA;
-	font-size: 1.4em;
-	font-family: Georgia, serif;
+#pdf-uploader em {
+	color: #888;
 }
 #pdf-uploader a:link, #pdf-uploader a:active, #pdf-uploader a:visited {
 	color: #333;
@@ -34,8 +35,10 @@ body {
 }
 
 .page {
-	float: left;
 	overflow: hidden;
+}
+.page.not-rotated {
+	float: left;
 }
 
 #page-left {
@@ -44,6 +47,7 @@ body {
 #canvas-left {
 	position: absolute;
 	left: 0;
+	top: 0;
 }
 
 #page-right {
@@ -52,6 +56,7 @@ body {
 #canvas-right {
 	position: absolute;
 	right: 0;
+	bottom: 0;
 }
 
 canvas:hover {

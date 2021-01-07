@@ -1,29 +1,38 @@
 'use strict';
 
 var pdf;
+var pdfSettings;
 var currPage = 1;
-var numPages = 0;
 
 var leftCanvas = $('#canvas-left');
 var rightCanvas = $('#canvas-right');
 
-function renderSpread(page) {
-	var leftPage;
-	if (2 * (page - 1) > numPages) {
-		leftPage = 2 * (numPages - page) + 3;
-	} else {
-		leftPage =  2 * (page - 1);
-	}
+function computePage(page) {
+	var pageNums = {};
+	if (pdfSettings.imposed) {
+		if (2 * (page - 1) > pdf.numPages) {
+			pageNums['left'] = 2 * (pdf.numPages - page) + 3;
+		} else {
+			pageNums['left'] =  2 * (page - 1);
+		}
 
-	var rightPage;
-	if (2 * (page - 1) >= numPages) {
-		rightPage = 2 * (numPages - page) + 2;
+		if (2 * (page - 1) >= pdf.numPages) {
+			pageNums['right'] = 2 * (pdf.numPages - page) + 2;
+		} else {
+			pageNums['right'] = 2 * page - 1;
+		}
 	} else {
-		rightPage = 2 * page - 1;
+		pageNums['left'] = 2 * (page - 1);
+		pageNums['right'] = 2 * page - 1;
 	}
+	return pageNums;
+}
+
+function renderSpread(page) {
+	var pageNums = computePage(page);
 	
-	renderPage(leftPage, leftCanvas);
-	renderPage(rightPage, rightCanvas);
+	renderPage(pageNums['left'], leftCanvas);
+	renderPage(pageNums['right'], rightCanvas);
 }
 
 function renderPage(pdfPage, canvasEl) {
@@ -31,32 +40,40 @@ function renderPage(pdfPage, canvasEl) {
 	var canvas = canvasEl[0];
 
 	pdf.getPage(pageToGet).then(function (page) {
-		var viewport = page.getViewport({ scale: 1.5 });
-
-		$('.page').css('height', viewport.height + 'px');
-		$('.page').css('width', (viewport.width / 2) + 'px');
+		var viewport = page.getViewport({ scale: 1.5 }); // TODO: Add scaling support in the future
+		var pageWidth = viewport.width;
+		var pageHeight = viewport.height;
 
 		var context = canvas.getContext('2d');
-		canvas.height = viewport.height;
-		canvas.width = viewport.width;
+		canvas.height = pageHeight;
+		canvas.width = pageWidth;
 
 		var renderContext = {
 			canvasContext: context,
 			viewport: viewport
 		};
 
-		canvasEl.removeClass('end');
 		if (pdfPage === 0) {
 			// The cover and back cover are accompanied by blank pages
-			context.fillStyle = 'white';
+			context.fillStyle = 'black';
 			context.fillRect(0, 0, canvas.width, canvas.height);
 			canvasEl.addClass('end');
 		} else {
 			page.render(renderContext);
+			canvasEl.removeClass('end');
 		}
 
-		$('#container').css('height', (viewport.height + 1) + 'px');
-		$('#container').css('width', (viewport.width + 3) + 'px');
+		$('#container').css('height', (viewport.height + 3) + 'px');
+		$('#container').css('width', ((pdfSettings.imposed ? 1 : 2) * viewport.width + 3) + 'px');
+
+		$('.page').css('height', pageHeight + 'px');
+		$('.page').css('width', pageWidth + 'px');
+
+		if ([0, 180].includes(pdfSettings.rotation)) {
+			$('.page').css('width', pageWidth / 2 + 'px');
+		} else {
+			$('.page').css('height', pageHeight / 2 + 'px');
+		}
 	});
 }
 
@@ -64,42 +81,80 @@ function toBase64(file) {
 	return new Promise(function (resolve, reject) {
 		var reader = new FileReader();
 		reader.readAsArrayBuffer(file);
-		reader.onload = () => resolve(reader.result);
-		reader.onerror = error => reject(error);
+		reader.onload = function () {
+			resolve(reader.result);
+		};
+		reader.onerror = function (error) {
+			reject(error);
+		};
 	});
 };
 
 function init() {
-	leftCanvas.click(function (event) {
-		if (currPage > 1) {
-			renderSpread(--currPage);
+	$('#option-imposed').click(function () {
+		var imposed = $('#option-imposed').prop('checked');
+
+		$('#option-rotate').prop('disabled', !imposed);
+		$('#option-rotation-angle').prop('disabled', !imposed);
+
+		if (!imposed) {
+			$('#option-rotate').prop('checked', false);
 		}
 	});
 
-	rightCanvas.click(function (event) {
-		if (currPage <= numPages) {
-			renderSpread(++currPage);
+	$('#btn-view').click(async function () {
+		if (!$('#pdf-selector').val()) {
+			alert("No file selected!");
+			return;
 		}
-	});
 
-	$('#pdf-selector').change(async function () {
-		var file = $('#pdf-selector')[0].files[0];
+		var file = $('#pdf-selector')[0].files[0]; 
 		var pdfBlob = await toBase64(file);
+
+		pdfSettings = {
+			"imposed": $('#option-imposed').prop('checked'),
+			"rotation": $('#option-rotate').prop('checked') ? parseInt($('#option-rotation-angle').val(), 10) : 0
+		};
 
 		var loadingTask = pdfjsLib.getDocument({ data: pdfBlob });
 		loadingTask.promise.then(function (loadedPdf) {
-			if (loadedPdf.numPages % 2 == 1) {
+			pdf = loadedPdf;
+
+			if (pdf.numPages % 2 == 1) {
 				alert('Expected imposed zine to have an even number of pages!');
 				$('#pdf-selector').val(null);
 				return;
 			}
 
-			pdf = loadedPdf;
-			numPages = pdf.numPages;
-			renderSpread(currPage);
+			// After certain rotations, pages end up on opposite side
+			if ([90, 180].includes(pdfSettings.rotation)) {
+				rightCanvas = $('#canvas-left');
+				leftCanvas = $('#canvas-right');
+			}
 
 			$('#pdf-uploader').css('display', 'none');
 			$('#pdf-viewer').css('display', 'block');
+
+			$('#pdf-viewer').css('transform', 'rotate(' + pdfSettings.rotation + 'deg)');
+			if ([0, 180].includes(pdfSettings.rotation)) {
+				$('.page').addClass('not-rotated');
+			} else {
+				$('.page').addClass('rotated');
+			}
+
+			leftCanvas.click(function (event) {
+				if (currPage > 1) {
+					renderSpread(--currPage);
+				}
+			});
+
+			rightCanvas.click(function (event) {
+				if (currPage <= pdf.numPages) {
+					renderSpread(++currPage);
+				}
+			});
+
+			renderSpread(currPage);
 		});
 	});
 }
