@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Imposed Zine Viewer</title>
+	<link rel="stylesheet" href="main.css" />
+</head>
+<body>
+	<div id="pdf-viewer">
+		<div id="container">
+			<div id="page-left" class="page">
+				<canvas id="canvas-left"></canvas>
+			</div>
+			<div id="page-right" class="page">
+				<canvas id="canvas-right"></canvas>
+			</div>
+		</div>
+	</div>
+
+	<div id="pdf-uploader">
+		<h2><label for="pdf-selector">Select an imposed zine PDF to view</label></h2>
+
+		<p><em>Need an example <a href="https://archive.org/download/LearningGoodConsent/learning_good_consent.pdf">zine</a>?</em></p>
+
+		<input id="pdf-selector" type="file" />
+	</div>
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.6.347/pdf.min.js" crossorigin="anonymous"></script>
+	<script src="app.js"></script>
+	<script>
+		init();
+	</script>
+</body>
+</html>

@@ -1,0 +1,64 @@
+html, body {
+	min-height: 100%;
+	min-width: 100%;
+}
+html {
+	display: table;
+}
+body {
+	display: table-cell;
+	vertical-align: middle;
+}
+
+#container {
+	border: 1px solid black;
+	margin: auto;
+}
+#pdf-uploader {
+	text-align: center;
+}
+#pdf-viewer {
+	display: none;
+}
+
+#pdf-uploader {
+	color: #AAA;
+	font-size: 1.4em;
+	font-family: Georgia, serif;
+}
+#pdf-uploader a:link, #pdf-uploader a:active, #pdf-uploader a:visited {
+	color: #333;
+}
+#pdf-uploader a:hover {
+	color: #555;
+}
+
+.page {
+	float: left;
+	overflow: hidden;
+}
+
+#page-left {
+	position: relative;
+}
+#canvas-left {
+	position: absolute;
+	left: 0;
+}
+
+#page-right {
+	position: relative;
+}
+#canvas-right {
+	position: absolute;
+	right: 0;
+}
+
+canvas:hover {
+	cursor: pointer;
+	opacity: 0.8;
+}
+canvas.end:hover {
+	cursor: default;
+	opacity: 1;
+}
