@@ -22,8 +22,8 @@ function renderSpread(page) {
 		rightPage = 2 * page - 1;
 	}
 	
-	renderPage(leftPage, leftCanvas, false);
-	renderPage(rightPage, rightCanvas, true);
+	renderPage(leftPage, leftCanvas);
+	renderPage(rightPage, rightCanvas);
 }
 
 function renderPage(pdfPage, canvasEl) {
@@ -63,7 +63,7 @@ function renderPage(pdfPage, canvasEl) {
 function toBase64(file) {
 	return new Promise(function (resolve, reject) {
 		var reader = new FileReader();
-		reader.readAsBinaryString(file);
+		reader.readAsArrayBuffer(file);
 		reader.onload = () => resolve(reader.result);
 		reader.onerror = error => reject(error);
 	});
@@ -86,7 +86,7 @@ function init() {
 		var file = $('#pdf-selector')[0].files[0];
 		var pdfBlob = await toBase64(file);
 
-		var loadingTask = pdfjsLib.getDocument({data: pdfBlob});
+		var loadingTask = pdfjsLib.getDocument({ data: pdfBlob });
 		loadingTask.promise.then(function (loadedPdf) {
 			if (loadedPdf.numPages % 2 == 1) {
 				alert('Expected imposed zine to have an even number of pages!');
