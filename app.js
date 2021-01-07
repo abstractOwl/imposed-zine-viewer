@@ -55,7 +55,7 @@ function renderPage(pdfPage, canvasEl) {
 
 		if (pdfPage === 0) {
 			// The cover and back cover are accompanied by blank pages
-			context.fillStyle = 'black';
+			context.fillStyle = 'white';
 			context.fillRect(0, 0, canvas.width, canvas.height);
 			canvasEl.addClass('end');
 		} else {
@@ -102,6 +102,10 @@ function init() {
 		if (!imposed) {
 			$('#option-rotate').prop('checked', false);
 		}
+	});
+
+	$('#option-invert').click(function () {
+		$('html').css('filter', $('#option-invert').prop('checked') ? 'invert(100%)' : '');
 	});
 
 	$('#btn-view').click(async function () {
