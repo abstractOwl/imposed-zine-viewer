@@ -23,7 +23,12 @@ function computePage(page) {
 		}
 	} else {
 		pageNums['left'] = 2 * (page - 1);
-		pageNums['right'] = 2 * page - 1;
+		if (2 * page - 1 > pdf.numPages) {
+			// Blank page counter to back cover
+			pageNums['right'] = 0;
+		} else {
+			pageNums['right'] = 2 * page - 1;
+		}
 	}
 	return pageNums;
 }
@@ -159,7 +164,10 @@ function init() {
 			});
 
 			rightCanvas.click(function (event) {
-				if (currPage <= pdf.numPages) {
+				if (
+					pdfSettings.imposed && currPage <= pdf.numPages
+					|| !pdfSettings.imposed && currPage <= pdf.numPages / 2
+				) {
 					renderSpread(++currPage);
 				}
 			});
