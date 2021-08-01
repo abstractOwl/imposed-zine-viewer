@@ -6,6 +6,7 @@ html, body {
 	min-width: 100%;
 }
 html {
+	background: #FFF;
 	display: table;
 }
 body {
